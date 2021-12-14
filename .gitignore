@@ -1,0 +1,13 @@
+/.idea
+*.iml
+
+*.private.*
+
+config.yml
+
+/bin
+/dist
+
+coverage.txt
+
+/api-tests
