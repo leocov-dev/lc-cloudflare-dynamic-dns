@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"lc-cloudflare-dynamic-dns/config"
+	"lc-cloudflare-dynamic-dns/internal/cloudflare"
 	"lc-cloudflare-dynamic-dns/internal/misc"
 )
 
@@ -21,8 +22,18 @@ func init() {
 }
 
 func runUpdate(cmd *cobra.Command, args []string) {
-	fmt.Println("doing update!")
-
 	ip := misc.GetOutboundIP()
-	fmt.Printf("Update DDNS record for: %s => %s\n", config.AppConfig.Update.Name, ip)
+	fmt.Printf("Updating DDNS record for: %s => %s\n", config.C.Update.Name, ip)
+
+	api := cloudflare.NewApiClient()
+
+	err := api.VerifyAuthToken()
+	if err != nil {
+		fmt.Println("Bad token: ", err)
+	}
+
+	err = api.DoUpdate(config.C.Update.Name, ip.String(), config.C.Update.TTL)
+	if err != nil {
+		fmt.Println("update error: ", err)
+	}
 }

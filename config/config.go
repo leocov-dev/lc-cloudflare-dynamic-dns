@@ -4,39 +4,23 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"os"
-	"time"
 )
 
 var (
-	AppConfig Config
+	C Config
 )
 
 type Config struct {
-	Cloudflare *Cloudflare
-	Update     *Update
+	Cloudflare *Cloudflare `yaml:"cloudflare"`
+	Update     *Update     `yaml:"update"`
 }
 
 type Cloudflare struct {
-	ApiToken string
+	ApiToken string `yaml:"apiToken"`
 }
 type Update struct {
-	Name     string
-	TTL      int
-	Interval time.Duration
-}
-
-func NewCloudflare(v *viper.Viper) *Cloudflare {
-	return &Cloudflare{
-		ApiToken: v.GetString("apiToken"),
-	}
-}
-
-func NewUpdate(v *viper.Viper) *Update {
-	return &Update{
-		Name:     v.GetString("name"),
-		TTL:      v.GetInt("ttl"),
-		Interval: v.GetDuration("interval"),
-	}
+	Name string `yaml:"name"`
+	TTL  int    `yaml:"ttl"`
 }
 
 func ReadConfigFile() {
@@ -51,7 +35,7 @@ func ReadConfigFile() {
 		os.Exit(1)
 	}
 
-	err = viper.Unmarshal(&AppConfig)
+	err = viper.Unmarshal(&C)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
