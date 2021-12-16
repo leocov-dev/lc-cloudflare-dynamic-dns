@@ -3,4 +3,3 @@ cloudflare:
 update:
   name: example.com
   ttl: 60
-  interval: 120

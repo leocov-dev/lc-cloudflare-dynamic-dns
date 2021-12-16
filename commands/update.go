@@ -25,7 +25,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	ip := misc.GetOutboundIP()
 	fmt.Printf("Updating DDNS record for: %s => %s\n", config.C.Update.Name, ip)
 
-	api := cloudflare.NewApiClient()
+	api := cloudflare.NewApiClient(config.C.Cloudflare.ApiToken)
 
 	err := api.VerifyAuthToken()
 	if err != nil {

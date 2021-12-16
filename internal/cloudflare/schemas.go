@@ -5,11 +5,18 @@ import (
 	"time"
 )
 
-type Response struct {
-	Result   Result        `json:"result,omitempty"`
+type ResponseSingle struct {
+	Result   *Result       `json:"result,omitempty"`
 	Success  bool          `json:"success,omitempty"`
 	Errors   []interface{} `json:"errors,omitempty"`
-	Messages []Message     `json:"messages,omitempty"`
+	Messages []*Message    `json:"messages,omitempty"`
+}
+
+type ResponseMany struct {
+	Result   []*Result     `json:"result,omitempty"`
+	Success  bool          `json:"success,omitempty"`
+	Errors   []interface{} `json:"errors,omitempty"`
+	Messages []*Message    `json:"messages,omitempty"`
 }
 
 type Result struct {

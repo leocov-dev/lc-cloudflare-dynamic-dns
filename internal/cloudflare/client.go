@@ -3,10 +3,8 @@ package cloudflare
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"lc-cloudflare-dynamic-dns/config"
-	"lc-cloudflare-dynamic-dns/internal/misc"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -14,18 +12,18 @@ import (
 )
 
 type Api struct {
-	http    *http.Client
-	apiRoot string
+	http      *http.Client
+	authToken string
 }
 
-func NewApiClient() *Api {
+func NewApiClient(authToken string) *Api {
 	return &Api{
-		http:    &http.Client{},
-		apiRoot: "https://api.cloudflare.com/client/v4",
+		http:      &http.Client{},
+		authToken: authToken,
 	}
 }
 
-func (c *Api) getUrl(path string, params map[string]string) *url.URL {
+func (c Api) getUrl(path string, params map[string]string) *url.URL {
 	u := &url.URL{
 		Scheme: "https",
 		Host:   "api.cloudflare.com",
@@ -42,39 +40,38 @@ func (c *Api) getUrl(path string, params map[string]string) *url.URL {
 	return u
 }
 
+func (c *Api) DoRequest(
+	method string,
+	path string,
+	query map[string]string,
+	body io.Reader,
+) (*http.Response, error) {
+	req, err := http.NewRequest(
+		method,
+		c.getUrl(path, query).String(),
+		body,
+	)
+	if err != nil {
+		return nil, err
+	}
+	setDefaultHeaders(c.authToken, req)
+
+	return c.http.Do(req)
+}
+
+// GET https://api.cloudflare.com/client/v4/user/tokens/verify
 func (c *Api) VerifyAuthToken() error {
-	req, err := http.NewRequest("GET", c.getUrl("/user/tokens/verify", nil).String(), nil)
-	setDefaultHeaders(req)
-
+	resp, err := c.DoRequest(
+		http.MethodGet,
+		"/user/tokens/verify",
+		nil,
+		nil,
+	)
 	if err != nil {
 		return err
 	}
 
-	resp, err := c.http.Do(req)
-
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		if config.IsDebug {
-			body, _ := decodeBody(resp.Body)
-			misc.PrettyPrintInterface(body)
-		}
-		return fmt.Errorf("status code error: %d", resp.StatusCode)
-	}
-
-	data, err := parseBody(resp.Body)
-
-	if err != nil {
-		return err
-	}
-
-	if len(data.Messages) > 0 && data.Messages[0].Code == 10000 {
-		return nil
-	}
-
-	return errors.New("failed to verify auth token")
+	return validResponseCode(resp, http.StatusOK)
 }
 
 func (c *Api) DoUpdate(name, ip string, ttl int) error {
@@ -93,20 +90,17 @@ func (c *Api) DoUpdate(name, ip string, ttl int) error {
 
 // GET https://api.cloudflare.com/client/v4/zones?name={{name}}
 func (c *Api) getZoneId(name string) (string, error) {
-	req, err := http.NewRequest(
+	resp, err := c.DoRequest(
 		http.MethodGet,
-		c.getUrl(
-			"zones",
-			map[string]string{"name": name},
-		).String(),
+		"zones",
+		map[string]string{"name": name},
 		nil,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := c.http.Do(req)
-	if err != nil {
+	if err = validResponseCode(resp, http.StatusOK); err != nil {
 		return "", err
 	}
 
@@ -115,25 +109,22 @@ func (c *Api) getZoneId(name string) (string, error) {
 		return "", err
 	}
 
-	return data.Result.Id, nil
+	return data.Result[0].Id, nil
 }
 
 // GET https://api.cloudflare.com/client/v4/zones/{{zone_id}}/dns_records?type=A
 func (c *Api) getRecordId(zoneId string) (string, error) {
-	req, err := http.NewRequest(
+	resp, err := c.DoRequest(
 		http.MethodGet,
-		c.getUrl(
-			fmt.Sprintf("zones/%s/dns_records", zoneId),
-			map[string]string{"type": "A"},
-		).String(),
+		fmt.Sprintf("zones/%s/dns_records", zoneId),
+		map[string]string{"type": "A"},
 		nil,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := c.http.Do(req)
-	if err != nil {
+	if err = validResponseCode(resp, http.StatusOK); err != nil {
 		return "", err
 	}
 
@@ -142,7 +133,7 @@ func (c *Api) getRecordId(zoneId string) (string, error) {
 		return "", err
 	}
 
-	return data.Result.Id, nil
+	return data.Result[0].Id, nil
 }
 
 // PUT https://api.cloudflare.com/client/v4/zones/{{zone_id}}/dns_records/{{a_record_id}}
@@ -159,20 +150,17 @@ func (c *Api) updateDns(name, ip string, ttl int, zoneId, recordId string) error
 		return err
 	}
 
-	req, err := http.NewRequest(
+	resp, err := c.DoRequest(
 		http.MethodPut,
-		c.getUrl(
-			fmt.Sprintf("zones/%s/dns_records/%s", zoneId, recordId),
-			nil,
-		).String(),
+		fmt.Sprintf("zones/%s/dns_records/%s", zoneId, recordId),
+		nil,
 		bytes.NewBuffer(body),
 	)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.http.Do(req)
-	if err != nil {
+	if err = validResponseCode(resp, http.StatusOK); err != nil {
 		return err
 	}
 
