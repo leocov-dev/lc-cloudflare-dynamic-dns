@@ -24,10 +24,13 @@ type Update struct {
 }
 
 func ReadConfigFile() {
-	viper.SetConfigFile("config.yml")
+	// search for a file named config.yaml
+	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("/etc/cf-dns")
+	// in these directories
+	viper.AddConfigPath("/etc/lc-cf-dns")
+	viper.AddConfigPath("./config")
+	viper.AddConfigPath("./")
 
 	err := viper.ReadInConfig()
 	if err != nil {

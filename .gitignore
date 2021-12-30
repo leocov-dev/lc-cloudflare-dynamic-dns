@@ -3,7 +3,7 @@
 
 *.private.*
 
-config.yml
+config.yaml
 
 /bin
 /dist
