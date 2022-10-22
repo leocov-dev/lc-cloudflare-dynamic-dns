@@ -11,10 +11,12 @@ import (
 
 var (
 	updateCmd = &cobra.Command{
-		Use:     "update",
-		Short:   "Update Dynamic DNS",
-		Aliases: []string{"u"},
-		Run:     runUpdate,
+		Use:   "update",
+		Short: "Update Dynamic DNS",
+		Run:   runUpdate,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return config.C.AssertConfigSet()
+		},
 	}
 )
 

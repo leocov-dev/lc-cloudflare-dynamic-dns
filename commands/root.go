@@ -16,10 +16,7 @@ var (
 		Use: exeName,
 		Long: fmt.Sprintf("%s %s\nUpdate Cloudflare Dynamic DNS",
 			exeName,
-			config.Version),
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return config.C.AssertConfigSet()
-		},
+			config.GetVersion()),
 	}
 
 	explicitConfigFilePath string
