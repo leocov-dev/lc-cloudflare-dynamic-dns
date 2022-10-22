@@ -6,6 +6,7 @@ import (
 	"lc-cloudflare-dynamic-dns/config"
 	"lc-cloudflare-dynamic-dns/internal/cloudflare"
 	"lc-cloudflare-dynamic-dns/internal/misc"
+	"os"
 )
 
 var (
@@ -29,11 +30,13 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 	err := api.VerifyAuthToken()
 	if err != nil {
-		fmt.Println("Bad token: ", err)
+		fmt.Fprintf(os.Stderr, "Bad token: %s\n", err)
+		os.Exit(1)
 	}
 
 	err = api.DoUpdate(config.C.Update.Name, ip.String(), config.C.Update.TTL)
 	if err != nil {
-		fmt.Println("update error: ", err)
+		fmt.Fprintf(os.Stderr, "update error: %s\n", err)
+		os.Exit(1)
 	}
 }

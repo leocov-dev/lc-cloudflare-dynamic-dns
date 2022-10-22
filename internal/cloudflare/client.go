@@ -23,7 +23,7 @@ func NewApiClient(authToken string) *Api {
 	}
 }
 
-func (c Api) getUrl(path string, params map[string]string) *url.URL {
+func (c *Api) getUrl(path string, params map[string]string) *url.URL {
 	u := &url.URL{
 		Scheme: "https",
 		Host:   "api.cloudflare.com",

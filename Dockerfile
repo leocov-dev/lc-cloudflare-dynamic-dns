@@ -1,13 +1,12 @@
 FROM golang:1.17-alpine AS builder
 
-WORKDIR /go/src/lc-cloudflare-dynamic-dns
+WORKDIR /code
 COPY . .
-RUN GO111MODULE=on go build -o /go/bin/lc-cf-dns
+RUN go build -o ./bin/cloudflare-dynamic-dns
 
 FROM builder
 
 WORKDIR /app
-COPY --from=builder /go/bin/lc-cf-dns .
+COPY --from=builder /code/bin/cloudflare-dynamic-dns .
 
-CMD ["lc-cf-dns"]
-#ENTRYPOINT ["tail", "-f", "/dev/null"]
+CMD ["cloudflare-dynamic-dns"]

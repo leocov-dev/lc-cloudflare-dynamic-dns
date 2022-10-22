@@ -1,9 +1,7 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var (
@@ -13,6 +11,11 @@ var (
 type Config struct {
 	Cloudflare *Cloudflare `yaml:"cloudflare"`
 	Update     *Update     `yaml:"update"`
+	err        error
+}
+
+func (c *Config) AssertConfigSet() error {
+	return c.err
 }
 
 type Cloudflare struct {
@@ -23,24 +26,29 @@ type Update struct {
 	TTL  int    `yaml:"ttl"`
 }
 
-func ReadConfigFile() {
-	// search for a file named config.yaml
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	// in these directories
-	viper.AddConfigPath("/etc/lc-cf-dns")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath("./")
+func ReadConfigFile(explicitConfig string) {
+	if explicitConfig == "" {
+		// search for a file named config.yaml
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		// in these directories
+		viper.AddConfigPath("/etc/lc-cf-dns")
+		viper.AddConfigPath("/etc/cloudflare-dynamic-dns")
+		viper.AddConfigPath("./config")
+		viper.AddConfigPath("./")
+	} else {
+		viper.SetConfigFile(explicitConfig)
+	}
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+		C.err = err
+		return
 	}
 
 	err = viper.Unmarshal(&C)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+		C.err = err
+		return
 	}
 }
