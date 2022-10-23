@@ -65,7 +65,7 @@ gox \
 
 # Copy our OS/Arch to the bin/ directory
 # only when not running in CI
-DEV_PLATFORM="./dist/${BUILD_PREFIX}-$(go env GOOS)-$(go env GOARCH)"
+DEV_PLATFORM="./dist/${BUILD_PREFIX}$(go env GOOS)-$(go env GOARCH)"
 if [[ -f "${DEV_PLATFORM}" && -z "${CI}" ]]; then
   mkdir -p bin/
   echo
@@ -74,7 +74,6 @@ if [[ -f "${DEV_PLATFORM}" && -z "${CI}" ]]; then
 fi
 
 # Packaging operations
-# only if not a pull request
 if [[ -n "${CI}" ]]; then
   echo
   echo "==> Packaging..."
