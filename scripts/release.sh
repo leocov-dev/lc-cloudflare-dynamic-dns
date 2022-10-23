@@ -66,7 +66,7 @@ gox \
 
 # Packaging operations
 # only if not a pull request
-if [[ -z "${CI}" || "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
+if [[ -n "${CI}" ]]; then
     echo
     echo "==> Packaging..."
     echo
