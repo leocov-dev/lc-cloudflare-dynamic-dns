@@ -63,6 +63,16 @@ gox \
   -output "dist/${BUILD_PREFIX}-{{.OS}}-{{.Arch}}" \
   .
 
+# Copy our OS/Arch to the bin/ directory
+# only when not running in CI
+DEV_PLATFORM="./dist/${BUILD_PREFIX}-$(go env GOOS)-$(go env GOARCH)"
+if [[ -f "${DEV_PLATFORM}" && -z "${CI}" ]]; then
+  mkdir -p bin/
+  echo
+  echo "==> Copy ${DEV_PLATFORM} to bin/"
+  cp "${DEV_PLATFORM}" "./bin/${BIN_NAME}"
+fi
+
 # Packaging operations
 # only if not a pull request
 if [[ -n "${CI}" ]]; then
@@ -74,6 +84,31 @@ if [[ -n "${CI}" ]]; then
 
     echo "    calculate hash..."
     sha256sum "./${file}" >"./${file}.sha256"
+
+    # IF there is a file extension, find and store it
+    if [[ ${file##*/} =~ \. ]]; then
+      ext="${file##*.}"
+      if [[ -n ${ext} ]]; then
+        ext=".${ext}"
+      fi
+    fi
+
+    build="./dist/${BUILD_PREFIX}${ext}"
+    sha="./dist/${BUILD_PREFIX}${ext}.sha256"
+
+    echo "build: ${build}"
+    echo "sha:   ${sha}"
+
+    mv -f "${file}" "${build}"
+    mv -f "${file}.sha256" "${sha}"
+
+    if [[ -n $ext ]]; then
+      zip -j "${file%.*}" "${build}" "${sha}"
+    else
+      zip -j "${file}" "${build}" "${sha}"
+    fi
+
+    rm -f "${build}" "${sha}"
   done
 
   # Done!
@@ -81,14 +116,4 @@ if [[ -n "${CI}" ]]; then
   echo "==> Results:"
   echo
   ls -hl dist/*
-fi
-
-# Copy our OS/Arch to the bin/ directory
-# only when not running in CI
-DEV_PLATFORM="./dist/${BUILD_PREFIX}-$(go env GOOS)-$(go env GOARCH)"
-if [[ -f "${DEV_PLATFORM}" && -z "${CI}" ]]; then
-  mkdir -p bin/
-  echo
-  echo "==> Copy ${DEV_PLATFORM} to bin/"
-  cp "${DEV_PLATFORM}" "./bin/${BIN_NAME}"
 fi
