@@ -13,9 +13,9 @@ cd "$DIR" || exit
 # Starting...
 echo
 if [[ -z $RELEASE_TAG ]]; then
-    echo "==> Build for UNTAGGED release"
+  echo "==> Build for UNTAGGED release"
 else
-    echo "==> Build for release ${RELEASE_TAG}"
+  echo "==> Build for release ${RELEASE_TAG}"
 fi
 
 # Determine the arch/os combos we're building for
@@ -30,13 +30,12 @@ if [[ -d ./bin || -d ./dist ]]; then
   rm -rf dist/*
 fi
 
-mkdir -p bin/
 mkdir -p dist/
 
 if ! command -v gox >/dev/null; then
-    echo
-    echo "==> Installing gox..."
-    go get -u github.com/mitchellh/gox
+  echo
+  echo "==> Installing gox..."
+  go get -u github.com/mitchellh/gox
 fi
 
 # Instruct gox to build statically linked binaries
@@ -57,38 +56,39 @@ BIN_NAME="cloudflare-dynamic-dns"
 BUILD_PREFIX="${BIN_NAME}"
 
 gox \
-    -os="${XC_OS}" \
-    -arch="${XC_ARCH}" \
-    -osarch="${XC_EXCLUDE_OSARCH}" \
-    -ldflags "${LD_FLAGS}" \
-    -output "dist/${BUILD_PREFIX}-{{.OS}}-{{.Arch}}" \
-    .
+  -os="${XC_OS}" \
+  -arch="${XC_ARCH}" \
+  -osarch="${XC_EXCLUDE_OSARCH}" \
+  -ldflags "${LD_FLAGS}" \
+  -output "dist/${BUILD_PREFIX}-{{.OS}}-{{.Arch}}" \
+  .
 
 # Packaging operations
 # only if not a pull request
 if [[ -n "${CI}" ]]; then
-    echo
-    echo "==> Packaging..."
-    echo
-    for file in ./dist/*; do
-        echo "--> ${file}"
+  echo
+  echo "==> Packaging..."
+  echo
+  for file in ./dist/*; do
+    echo "--> ${file}"
 
-        echo "    calculate hash..."
-        sha256sum "./${file}" >"./${file}.sha256"
-    done
+    echo "    calculate hash..."
+    sha256sum "./${file}" >"./${file}.sha256"
+  done
 
-    # Done!
-    echo
-    echo "==> Results:"
-    echo
-    ls -hl dist/*
+  # Done!
+  echo
+  echo "==> Results:"
+  echo
+  ls -hl dist/*
 fi
 
 # Copy our OS/Arch to the bin/ directory
 # only when not running in CI
 DEV_PLATFORM="./dist/${BUILD_PREFIX}-$(go env GOOS)-$(go env GOARCH)"
 if [[ -f "${DEV_PLATFORM}" && -z "${CI}" ]]; then
-    echo
-    echo "==> Copy ${DEV_PLATFORM} to bin/"
-    cp "${DEV_PLATFORM}" "./bin/${BIN_NAME}"
+  mkdir -p bin/
+  echo
+  echo "==> Copy ${DEV_PLATFORM} to bin/"
+  cp "${DEV_PLATFORM}" "./bin/${BIN_NAME}"
 fi
