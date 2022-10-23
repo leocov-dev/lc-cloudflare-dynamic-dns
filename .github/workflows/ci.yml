@@ -15,7 +15,7 @@ jobs:
       - name: Parse Go version
         id: parsed-version
         run: |
-          version=go list -f {{.GoVersion}} -m
+          version=$(go list -f {{.GoVersion}} -m)
           echo ::set-output name=GO_VERSION::${version}
           echo "Go version is ${version}"
 
