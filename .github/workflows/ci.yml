@@ -31,5 +31,5 @@ jobs:
           go-version-file: './go.mod'
           cache: true
 
-      - name: Build
-        run: make dev
+      - name: Multi-target Build
+        run: make release
