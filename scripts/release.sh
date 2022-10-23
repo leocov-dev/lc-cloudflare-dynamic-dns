@@ -23,12 +23,14 @@ XC_ARCH=${XC_ARCH:-"arm arm64 amd64"}
 XC_OS=${XC_OS:-"linux darwin windows"}
 XC_EXCLUDE_OSARCH="!darwin/arm !windows/arm"
 
-# Delete the old dir
-echo
-echo "==> Removing old directory..."
-rm -rf bin/*
+if [[ -d ./bin || -d ./dist ]]; then
+  echo
+  echo "==> Clearing Old Builds..."
+  rm -rf bin/*
+  rm -rf dist/*
+fi
+
 mkdir -p bin/
-rm -rf dist/*
 mkdir -p dist/
 
 if ! command -v gox >/dev/null; then
