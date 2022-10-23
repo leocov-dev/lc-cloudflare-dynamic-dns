@@ -31,5 +31,8 @@ jobs:
           go-version-file: './go.mod'
           cache: true
 
+      - name: Install GOX
+        run: go install github.com/mitchellh/gox@latest
+
       - name: Multi-target Build
         run: make release
