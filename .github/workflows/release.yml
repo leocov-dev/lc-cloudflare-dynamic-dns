@@ -1,34 +1,47 @@
-name: release
+name: draft release
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
-  release:
+  release-draft:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Define Version
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version-file: "${{ github.workspace }}/go.mod"
+          go-version-file: "./go.mod"
           cache: true
+          cache-dependency-path: "./go.sum"
 
       - name: Install GOX
         run: go install github.com/mitchellh/gox@latest
 
       - name: Multi-target Build
-        run: RELEASE_TAG=${GITHUB_REF#refs/tags/} make release
+        run: VERSION_TAG=${{ steps.vars.outputs.tag }} make release
 
       - name: List Files
-        run: ls ${{ github.workspace }}/dist
+        run: ls ./dist
 
-      - name: Push Files
-        uses: softprops/action-gh-release@v1
+      - name: Draft Release
+        uses: release-drafter/release-drafter@v5
         with:
-          files: ${{ github.workspace }}/dist/*
+          tag: ${{ steps.vars.outputs.tag }}
+          version: ${{ steps.vars.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload --clobber ${{ steps.vars.outputs.tag }} ./dist/*

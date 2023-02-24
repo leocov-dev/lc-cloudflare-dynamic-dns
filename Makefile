@@ -3,21 +3,24 @@ GOFMT_FILES?=$$(find . -type f -name '*.go')
 default: dev
 
 dev: clean tidy fmt
-	@go build -race -o "$(CURDIR)/bin/cloudflare-dynamic-dns" .
+	@go build -race -o "bin/cloudflare-dynamic-dns" .
+
+docker-image:
+	@docker build -t cloudflare-dynamic-dns .
 
 # bin generates release zip packages in ./dist
 release: clean tidy
-	@sh -c "$(CURDIR)/scripts/release.sh"
+	@sh -c "scripts/release.sh"
 
 clean:
-	@rm -rf "$(CURDIR)/bin"
-	@rm -rf "$(CURDIR)/dist"
+	@rm -rf "bin"
+	@rm -rf "dist"
 
 fmt:
 	@gofmt -w $(GOFMT_FILES)
 
 fmtcheck:
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+	@bash -c "scripts/gofmtcheck.sh"
 
 tidy:
 	@go mod tidy

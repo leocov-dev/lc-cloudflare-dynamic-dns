@@ -4,4 +4,15 @@ bin/
 .dockerignore
 .gitignore
 .go-version
+.editorconfig
 README.md
+.idea/
+.git/
+.github/
+.vscode/
+scripts/
+Makefile
+LICENSE
+Dockerfile
+env*
+.env*
