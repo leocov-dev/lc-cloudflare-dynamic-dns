@@ -9,24 +9,15 @@ import (
 	"net/http"
 )
 
-func decodeBody(body io.ReadCloser) (response interface{}, err error) {
-	defer body.Close()
-
-	err = json.NewDecoder(body).Decode(&response)
-	if err != nil {
-		return response, err
-	}
-
-	return response, nil
-}
-
 func parseBody(body io.ReadCloser) (response ResponseMany, err error) {
-	if config.IsDebug {
-		prettyPrintResponse(body)
-	}
 	defer body.Close()
 
 	err = json.NewDecoder(body).Decode(&response)
+
+	if config.IsDebug {
+		prettyPrintResponse(response)
+	}
+
 	if err != nil {
 		return response, fmt.Errorf("failed to parse api response: %s", err)
 	}
@@ -35,19 +26,23 @@ func parseBody(body io.ReadCloser) (response ResponseMany, err error) {
 }
 
 func validResponseCode(resp *http.Response, desiredCode int) error {
+
 	if resp.StatusCode != desiredCode {
-		if config.IsDebug {
-			prettyPrintResponse(resp.Body)
+		response, _ := parseBody(resp.Body)
+		for _, item := range response.Errors {
+			if item.Message == "A record with the same settings already exists." {
+				return nil
+			}
 		}
+
 		return fmt.Errorf("status code error: %d", resp.StatusCode)
 	}
 
 	return nil
 }
 
-func prettyPrintResponse(body io.ReadCloser) {
-	decoded, _ := decodeBody(body)
-	misc.PrettyPrintInterface(decoded)
+func prettyPrintResponse(body interface{}) {
+	misc.PrettyPrintInterface(body)
 }
 
 func setDefaultHeaders(authToken string, r *http.Request) {

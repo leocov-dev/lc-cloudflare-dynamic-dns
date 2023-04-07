@@ -1,5 +1,6 @@
 cloudflare:
   apiToken: not-a-token
+
 update:
   name: example.com
   ttl: 60

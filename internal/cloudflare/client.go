@@ -143,6 +143,7 @@ func (c *Api) updateDns(name, ip string, ttl int, zoneId, recordId string) error
 		Name:    name,
 		Content: ip,
 		TTL:     time.Duration(ttl) * time.Second,
+		Comment: fmt.Sprintf("Updated by lc-cf-dns at: %d", time.Now().Unix()),
 	}
 
 	body, err := json.Marshal(update)
@@ -151,7 +152,7 @@ func (c *Api) updateDns(name, ip string, ttl int, zoneId, recordId string) error
 	}
 
 	resp, err := c.DoRequest(
-		http.MethodPut,
+		http.MethodPatch,
 		fmt.Sprintf("zones/%s/dns_records/%s", zoneId, recordId),
 		nil,
 		bytes.NewBuffer(body),
@@ -159,6 +160,7 @@ func (c *Api) updateDns(name, ip string, ttl int, zoneId, recordId string) error
 	if err != nil {
 		return err
 	}
+	//defer resp.Body.Close()
 
 	if err = validResponseCode(resp, http.StatusOK); err != nil {
 		return err

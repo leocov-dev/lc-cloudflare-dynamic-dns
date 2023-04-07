@@ -1,8 +1,12 @@
 FROM golang:1.19-alpine3.17 AS builder
 
+ENV CGO_ENABLED=0
+
 WORKDIR /code
 COPY . .
-RUN CGO_ENABLED=0 go build -o ./bin/cloudflare-dynamic-dns --ldflags="-s -w -X 'lc-cloudflare-dynamic-dns/config.Version=${RELEASE_TAG}'"
+RUN go build \
+      -o ./bin/cloudflare-dynamic-dns \
+      --ldflags="-s -w -X 'lc-cloudflare-dynamic-dns/config.Version=${RELEASE_TAG}'"
 
 FROM alpine:3.17
 
