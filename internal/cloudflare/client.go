@@ -59,8 +59,8 @@ func (c *Api) DoRequest(
 	return c.http.Do(req)
 }
 
-// GET https://api.cloudflare.com/client/v4/user/tokens/verify
 func (c *Api) VerifyAuthToken() error {
+	// GET https://api.cloudflare.com/client/v4/user/tokens/verify
 	resp, err := c.DoRequest(
 		http.MethodGet,
 		"/user/tokens/verify",

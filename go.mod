@@ -1,6 +1,6 @@
 module lc-cloudflare-dynamic-dns
 
-go 1.19
+go 1.23
 
 require (
 	github.com/glendc/go-external-ip v0.1.0

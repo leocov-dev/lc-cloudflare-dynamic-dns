@@ -1,0 +1,21 @@
+{
+  "name": "Go Development (1.23)",
+  "image": "mcr.microsoft.com/devcontainers/go:1.23",
+  "features": {},
+  "postCreateCommand": "go mod tidy",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.formatTool": "gofmt"
+      },
+      "extensions": [
+        "golang.go",
+        "ms-azuretools.vscode-docker"
+      ],
+    }
+  },
+  "forwardPorts": [],
+  "mounts": [],
+  "remoteUser": "root"
+}
